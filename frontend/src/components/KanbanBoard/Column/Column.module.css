@@ -1,0 +1,11 @@
+.column {
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 10px 20px;
+}
+
+.tasks {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
