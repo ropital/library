@@ -1,71 +1,49 @@
 import { useState } from "react";
-import { DropResult } from "react-beautiful-dnd";
+import { DraggableLocation, DropResult } from "react-beautiful-dnd";
 
-type ColumnMap = { columnId: string; itemIndex: number };
-
-export type Column = { id: string, itemIds: string[] }
-export type Columns = {
-  [key in string]: Column // IDがnumberじゃなくても対応できるようにstring型
+export type ColumnType = { id: string, itemIds: string[] }
+export type ColumnsType = {
+  [key in string]: ColumnType
 }
 
-export const moveInSingleColumn = (source: ColumnMap, destination: ColumnMap, targetItemId: string, columns: Columns): Columns => {
-  const targetColumn = columns[source.columnId]
-  const newItemIds = Array.from(targetColumn.itemIds);
-console.log(source, destination)
+export const reorder = <T>(list: T[], startIndex: number, endIndex: number): T[] => {
+  const newList = Array.from(list);
 
-  newItemIds.splice(source.itemIndex, 1);
-  newItemIds.splice(destination.itemIndex, 0, targetItemId);
+  const [removed] = newList.splice(startIndex, 1);
+  newList.splice(endIndex, 0, removed);
 
-  console.log(newItemIds)
-
-  const newColumn: Column = {
-    ...targetColumn,
-    itemIds: newItemIds,
-  };
-
-  const newColumns: Columns = {
-    ...columns,
-    [newColumn.id]: newColumn,
-  };
-
-  return newColumns
+  return newList
 };
 
-export const moveInMultipleColumn = (source: ColumnMap, destination: ColumnMap, draggedItemId: string, columns: Columns): Columns => {
-  const startColumn = columns[source.columnId]
-  const startTasksIds = Array.from(startColumn.itemIds);
-  startTasksIds.splice(source.itemIndex, 1);
+export const multipleReorder = (columns: ColumnsType, source: DraggableLocation, destination: DraggableLocation): ColumnsType => {
+  const startItemIds = [...columns[source.droppableId].itemIds]
+  const targetItemId = startItemIds[source.index]
+  startItemIds.splice(source.index, 1);
+  
+  const endItemIds = [...columns[destination.droppableId].itemIds]
+  endItemIds.splice(destination.index, 0, targetItemId);
 
-  const newStartColumn: Column = {
-    ...startColumn,
-    itemIds: startTasksIds,
-  };
-
-  const finishColumn = columns[destination.columnId]
-  const finishTasksIds = Array.from(finishColumn.itemIds);
-  finishTasksIds.splice(destination.itemIndex, 0, draggedItemId);
-
-  const newFinishColumn = {
-    ...finishColumn,
-    itemIds: finishTasksIds,
-  };
-
-  const newColumns: Columns = {
+  const newColumns: ColumnsType = {
     ...columns,
-    [newStartColumn.id]: newStartColumn,
-    [newFinishColumn.id]: newFinishColumn,
+    [source.droppableId]: {
+      id: source.droppableId,
+      itemIds: startItemIds,
+    },
+    [destination.droppableId]: {
+      id: destination.droppableId,
+      itemIds: endItemIds
+    }
   }
-
-  console.log(newColumns)
 
   return newColumns
 }
 
-export const useMultipeColumn = (initialColumns: Columns) => {
-  const [columns, setColumns] = useState<Columns>(initialColumns);
+export const useMultipeColumn = (initialColumns: ColumnsType, initialOrder: string[]) => {
+  const [columns, setColumns] = useState<ColumnsType>(initialColumns);
+  const [order, setOrder] = useState<string[]>(initialOrder)
 
   const onDragEnd = (result: DropResult) => {
-    const { draggableId, source, destination } = result;
+    const { source, destination, type } = result;
 
     if (!destination) {
       return;
@@ -79,39 +57,40 @@ export const useMultipeColumn = (initialColumns: Columns) => {
       return;
     }
 
+    if (type === "COLUMN") {
+      const newColumnOrder = reorder(
+        order,
+        source.index,
+        destination.index
+      )
+
+      setOrder(newColumnOrder)
+      return
+    }
+
     if (destination.droppableId === source.droppableId) {
-      const newColumns = moveInSingleColumn(
-        {
-          columnId: source.droppableId,
-          itemIndex: source.index,
-        },
-        {
-          columnId: destination.droppableId,
-          itemIndex: destination.index,
-        },
-        draggableId,
-        columns
+      const newItemIds = reorder(
+        columns[source.droppableId].itemIds,
+        source.index,
+        destination.index,
       );
-      setColumns(newColumns);
+
+      setColumns({
+        ...columns,
+        [source.droppableId]: {
+          id: source.droppableId,
+          itemIds: newItemIds
+        }
+      });
     } else {
-      const newColumns = moveInMultipleColumn(
-        {
-          columnId: source.droppableId,
-          itemIndex: source.index,
-        },
-        {
-          columnId: destination.droppableId,
-          itemIndex: destination.index,
-        },
-        draggableId,
-        columns
-      );
+      const newColumns = multipleReorder(columns, source, destination);
       setColumns(newColumns);
     }
   };
 
   return {
     columns,
+    order,
     onDragEnd,
   }
 }
