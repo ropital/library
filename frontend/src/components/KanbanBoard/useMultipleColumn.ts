@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { DraggableLocation, DropResult } from "react-beautiful-dnd";
 
-export type ColumnType = { id: string, itemIds: string[] }
 export type ColumnsType = {
-  [key in string]: ColumnType
+  [key in string]: string[]
 }
 
 export const reorder = <T>(list: T[], startIndex: number, endIndex: number): T[] => {
@@ -16,23 +15,17 @@ export const reorder = <T>(list: T[], startIndex: number, endIndex: number): T[]
 };
 
 export const multipleReorder = (columns: ColumnsType, source: DraggableLocation, destination: DraggableLocation): ColumnsType => {
-  const startItemIds = [...columns[source.droppableId].itemIds]
+  const startItemIds = [...columns[source.droppableId]]
   const targetItemId = startItemIds[source.index]
   startItemIds.splice(source.index, 1);
   
-  const endItemIds = [...columns[destination.droppableId].itemIds]
+  const endItemIds = [...columns[destination.droppableId]]
   endItemIds.splice(destination.index, 0, targetItemId);
 
   const newColumns: ColumnsType = {
     ...columns,
-    [source.droppableId]: {
-      id: source.droppableId,
-      itemIds: startItemIds,
-    },
-    [destination.droppableId]: {
-      id: destination.droppableId,
-      itemIds: endItemIds
-    }
+    [source.droppableId]: startItemIds,
+    [destination.droppableId]: endItemIds
   }
 
   return newColumns
@@ -70,17 +63,14 @@ export const useMultipeColumn = (initialColumns: ColumnsType, initialOrder: stri
 
     if (destination.droppableId === source.droppableId) {
       const newItemIds = reorder(
-        columns[source.droppableId].itemIds,
+        columns[source.droppableId],
         source.index,
         destination.index,
       );
 
       setColumns({
         ...columns,
-        [source.droppableId]: {
-          id: source.droppableId,
-          itemIds: newItemIds
-        }
+        [source.droppableId]: newItemIds,
       });
     } else {
       const newColumns = multipleReorder(columns, source, destination);

@@ -3,7 +3,7 @@ import { Column, ColumnProps } from "./Column/Column";
 import { KanbanData } from "./data";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styles from "./KanbanBoard.module.css";
-import { ColumnsType, ColumnType, useMultipeColumn } from "./useMultipleColumn";
+import { ColumnsType, useMultipeColumn } from "./useMultipleColumn";
 
 type Props = {
   initialData: KanbanData;
@@ -29,13 +29,16 @@ export const KanbanBoard: VFC<Props> = ({ initialData }) => {
             ref={provided.innerRef}
             {...provided.droppableProps}
           >
-            {order.map((id, index) => {
-              const column = columns[id];
+            {order.map((columnId, index) => {
+              const column = columns[columnId];
 
               return (
                 <Column
-                  key={column.id}
-                  {...getColumnProps(column, initialData, index)}
+                  key={columnId}
+                  id={columnId}
+                  title={initialData.columns[columnId].title}
+                  index={index}
+                  tasks={column.map((itemId) => initialData.tasks[itemId])}
                 />
               );
             })}
@@ -46,26 +49,11 @@ export const KanbanBoard: VFC<Props> = ({ initialData }) => {
   ) : null;
 };
 
-function getColumnProps(column: ColumnType, data: KanbanData, index: number) {
-  const tasks = column.itemIds.map((itemId) => data.tasks[itemId]);
-  const props: ColumnProps = {
-    id: column.id,
-    title: data.columns[column.id].title,
-    tasks,
-    index,
-  };
-
-  return props;
-}
-
 function mapToColumns(data: KanbanData["columns"]): ColumnsType {
   return Object.keys(data).reduce((columns: ColumnsType, key) => {
-    const column = {
-      id: data[key].id,
-      itemIds: data[key].taskIds,
-    };
+    const itemOrder = data[key].taskIds;
 
-    columns[key] = column;
+    columns[key] = itemOrder;
     return columns;
   }, {});
 }
