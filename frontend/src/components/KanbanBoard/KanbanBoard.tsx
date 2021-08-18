@@ -10,10 +10,13 @@ type Props = {
 };
 
 export const KanbanBoard: VFC<Props> = ({ initialData }) => {
-  const { columns, order, onDragEnd } = useMultipeColumn(
-    mapToColumns(initialData.columns),
-    initialData.columnOrder
-  );
+  const { columns, order, onDragEnd } = useMultipeColumn({
+    initialColumns: mapToColumns(initialData.columns),
+    initialOrder: initialData.columnOrder,
+    onMoveColumn: (columnId, index) => console.log(columnId, index),
+    onMoveItem: (itemId, columnId, index) =>
+      console.log(itemId, columnId, index),
+  });
   const [ready, setReady] = useState(false);
 
   useEffect(() => {

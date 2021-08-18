@@ -31,12 +31,19 @@ export const multipleReorder = (columns: ColumnsType, source: DraggableLocation,
   return newColumns
 }
 
-export const useMultipeColumn = (initialColumns: ColumnsType, initialOrder: string[]) => {
+type Props = {
+  initialColumns: ColumnsType
+  initialOrder: string[]
+  onMoveColumn?: (columnId: string, toIndex: number) => void
+  onMoveItem?: (itemId: string, columnId: string, toIndex: number) => void
+}
+
+export const useMultipeColumn = ({ initialColumns, initialOrder, onMoveColumn, onMoveItem } :Props) => {
   const [columns, setColumns] = useState<ColumnsType>(initialColumns);
   const [order, setOrder] = useState<string[]>(initialOrder)
 
   const onDragEnd = (result: DropResult) => {
-    const { source, destination, type } = result;
+    const { source, destination, draggableId, type } = result;
 
     if (!destination) {
       return;
@@ -58,6 +65,7 @@ export const useMultipeColumn = (initialColumns: ColumnsType, initialOrder: stri
       )
 
       setOrder(newColumnOrder)
+      onMoveColumn?.(draggableId, destination.index)
       return
     }
 
@@ -72,9 +80,12 @@ export const useMultipeColumn = (initialColumns: ColumnsType, initialOrder: stri
         ...columns,
         [source.droppableId]: newItemIds,
       });
+      onMoveItem?.(draggableId, destination.droppableId, destination.index)
+      
     } else {
       const newColumns = multipleReorder(columns, source, destination);
       setColumns(newColumns);
+      onMoveItem?.(draggableId, destination.droppableId, destination.index)
     }
   };
 
