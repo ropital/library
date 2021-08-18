@@ -1,6 +1,6 @@
 import React, { useEffect, useState, VFC } from "react";
 import { Column } from "./Column/Column";
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
+import { DragDropContext } from "react-beautiful-dnd";
 import styles from "./KanbanBoard.module.css";
 import {
   ColumnOrder,
@@ -8,6 +8,7 @@ import {
   useMultipeColumn,
 } from "./useMultipleColumn";
 import { KanbanData, useKanbanBoard } from "./useKanbanBoard";
+import { Droppable } from "../DnD/Droppable/Droppable";
 
 export type KanbanBoardProps = {
   data: KanbanData;
@@ -37,32 +38,24 @@ export const KanbanBoard: VFC<KanbanBoardProps> = ({
 
   return ready ? (
     <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable droppableId="board" type="COLUMN">
-        {(provided) => (
-          <div
-            className={styles.columns}
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-          >
-            {order.map((columnId, index) => {
-              const column = columns[columnId];
+      <Droppable droppableId="board" type="COLUMN" className={styles.columns}>
+        {order.map((columnId, index) => {
+          const column = columns[columnId];
 
-              return (
-                <Column
-                  key={columnId}
-                  id={columnId}
-                  title={kanbanData.columns[columnId].title}
-                  index={index}
-                  onChangeTitle={onChangeTitle}
-                  tasks={column.map((itemId) => ({
-                    onChange: onChangeContent,
-                    ...kanbanData.tasks[itemId],
-                  }))}
-                />
-              );
-            })}
-          </div>
-        )}
+          return (
+            <Column
+              key={columnId}
+              id={columnId}
+              title={kanbanData.columns[columnId].title}
+              index={index}
+              onChangeTitle={onChangeTitle}
+              tasks={column.map((itemId) => ({
+                onChange: onChangeContent,
+                ...kanbanData.tasks[itemId],
+              }))}
+            />
+          );
+        })}
       </Droppable>
     </DragDropContext>
   ) : null;

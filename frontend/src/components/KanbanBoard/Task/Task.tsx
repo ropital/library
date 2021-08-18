@@ -1,5 +1,5 @@
 import React, { ChangeEventHandler, VFC } from "react";
-import { Draggable } from "react-beautiful-dnd";
+import { Draggable } from "../../DnD/Draggable/Draggable";
 import styles from "./Task.module.css";
 
 export type TaskProps = {
@@ -11,21 +11,12 @@ export type TaskProps = {
 
 export const Task: VFC<TaskProps> = ({ id, content, index, onChange }) => {
   return (
-    <Draggable draggableId={id} index={index}>
-      {(provided) => (
-        <div
-          className={styles.task}
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-        >
-          <input
-            type="text"
-            value={content}
-            onChange={(event) => onChange(id, event.target.value)}
-          />
-        </div>
-      )}
+    <Draggable draggableId={id} index={index} className={styles.task}>
+      <input
+        type="text"
+        value={content}
+        onChange={(event) => onChange(id, event.target.value)}
+      />
     </Draggable>
   );
 };
