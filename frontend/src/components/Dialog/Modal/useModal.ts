@@ -32,7 +32,7 @@ export const useModal = (props: UseModalProps) => {
         finalFocusRef?.current?.focus()
       }) 
     }
-  }, [])
+  }, [finalFocusRef, modalRef])
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent) => {

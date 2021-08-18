@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { DraggableLocation, DropResult } from "react-beautiful-dnd";
 
-export type ColumnsType = {
+export type ColumnOrder = string[]
+
+export type TaskOrderMap = {
   [key in string]: string[]
 }
 
@@ -14,7 +16,7 @@ export const reorder = <T>(list: T[], startIndex: number, endIndex: number): T[]
   return newList
 };
 
-export const multipleReorder = (columns: ColumnsType, source: DraggableLocation, destination: DraggableLocation): ColumnsType => {
+export const multipleReorder = (columns: TaskOrderMap, source: DraggableLocation, destination: DraggableLocation): TaskOrderMap => {
   const startItemIds = [...columns[source.droppableId]]
   const targetItemId = startItemIds[source.index]
   startItemIds.splice(source.index, 1);
@@ -22,7 +24,7 @@ export const multipleReorder = (columns: ColumnsType, source: DraggableLocation,
   const endItemIds = [...columns[destination.droppableId]]
   endItemIds.splice(destination.index, 0, targetItemId);
 
-  const newColumns: ColumnsType = {
+  const newColumns: TaskOrderMap = {
     ...columns,
     [source.droppableId]: startItemIds,
     [destination.droppableId]: endItemIds
@@ -32,14 +34,14 @@ export const multipleReorder = (columns: ColumnsType, source: DraggableLocation,
 }
 
 type Props = {
-  initialColumns: ColumnsType
-  initialOrder: string[]
+  initialTaskOrderMap: TaskOrderMap
+  initialColumnOrder: ColumnOrder
   onMoveColumn?: (columnId: string, toIndex: number) => void
   onMoveItem?: (itemId: string, columnId: string, toIndex: number) => void
 }
 
-export const useMultipeColumn = ({ initialColumns, initialOrder, onMoveColumn, onMoveItem } :Props) => {
-  const [columns, setColumns] = useState<ColumnsType>(initialColumns);
+export const useMultipeColumn = ({ initialTaskOrderMap: initialColumns, initialColumnOrder: initialOrder, onMoveColumn, onMoveItem } :Props) => {
+  const [columns, setColumns] = useState<TaskOrderMap>(initialColumns);
   const [order, setOrder] = useState<string[]>(initialOrder)
 
   const onDragEnd = (result: DropResult) => {

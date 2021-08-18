@@ -1,8 +1,11 @@
+import { KanbanBoardProps } from "./KanbanBoard";
+import { TaskOrderMap } from "./useMultipleColumn";
+
 type Column = {
   id: string, title: string, taskIds: string[]
 }
 
-export type KanbanData = {
+export type GetKanbanDataResponse = {
   tasks: {
     [key in string]: { id: string, content: string }
   },
@@ -10,9 +13,9 @@ export type KanbanData = {
     [key in string]: Column
   },
   columnOrder: string[]
-}
+};
 
-export const initialData: KanbanData = {
+export const data: GetKanbanDataResponse = {
   tasks: {
     'task1' : {id: 'task1', content: 'Take out the garbage'},
     'task2' : {id: 'task2', content: 'Watch my favorite show'},
@@ -37,4 +40,29 @@ export const initialData: KanbanData = {
     },
   },
   columnOrder: ['column-1', 'column-2', 'column-3'],
+};
+
+export const getKanbanBoard = (id: string): KanbanBoardProps => {
+  console.log("getKanbanBoard id:", id);
+
+  return mapKanbanBoardProps(data)
+}
+
+
+const mapKanbanBoardProps = (data: GetKanbanDataResponse): KanbanBoardProps => {
+  const taskOrderMap = Object.keys(data.columns).reduce(
+    (columns: TaskOrderMap, key) => {
+      const itemOrder = data.columns[key].taskIds;
+
+      columns[key] = itemOrder;
+      return columns;
+    },
+    {}
+  );
+
+  return {
+    taskOrderMap,
+    columnOrder: data.columnOrder,
+    data: data,
+  };
 }
