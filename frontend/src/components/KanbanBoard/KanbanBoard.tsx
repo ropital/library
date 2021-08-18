@@ -1,27 +1,70 @@
 import React, { useEffect, useState, VFC } from "react";
-import { Column, ColumnProps } from "./Column/Column";
-import { KanbanData } from "./data";
+import { Column } from "./Column/Column";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import styles from "./KanbanBoard.module.css";
-import { ColumnsType, useMultipeColumn } from "./useMultipleColumn";
+import {
+  ColumnOrder,
+  TaskOrderMap,
+  useMultipeColumn,
+} from "./useMultipleColumn";
 
-type Props = {
-  initialData: KanbanData;
+type Task = {
+  id: string;
+  content: string;
 };
 
-export const KanbanBoard: VFC<Props> = ({ initialData }) => {
+type ColumnType = {
+  id: string;
+  title: string;
+};
+
+type KanbanData = {
+  tasks: {
+    [key in string]: Task;
+  };
+  columns: {
+    [key in string]: ColumnType;
+  };
+};
+
+export type KanbanBoardProps = {
+  data: KanbanData;
+  columnOrder: ColumnOrder;
+  taskOrderMap: TaskOrderMap;
+};
+
+export const KanbanBoard: VFC<KanbanBoardProps> = ({
+  data,
+  columnOrder,
+  taskOrderMap,
+}) => {
+  const [kanbanData, setKanbanData] = useState(data);
   const { columns, order, onDragEnd } = useMultipeColumn({
-    initialColumns: mapToColumns(initialData.columns),
-    initialOrder: initialData.columnOrder,
+    initialTaskOrderMap: taskOrderMap,
+    initialColumnOrder: columnOrder,
     onMoveColumn: (columnId, index) => console.log(columnId, index),
     onMoveItem: (itemId, columnId, index) =>
       console.log(itemId, columnId, index),
   });
+
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setReady(true);
   }, []);
+
+  const onChange = (id: string, content: string) => {
+    setKanbanData({
+      ...kanbanData,
+      tasks: {
+        ...kanbanData.tasks,
+        [id]: {
+          id: id,
+          content: content,
+        },
+      },
+    });
+  };
 
   return ready ? (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -39,9 +82,12 @@ export const KanbanBoard: VFC<Props> = ({ initialData }) => {
                 <Column
                   key={columnId}
                   id={columnId}
-                  title={initialData.columns[columnId].title}
+                  title={kanbanData.columns[columnId].title}
                   index={index}
-                  tasks={column.map((itemId) => initialData.tasks[itemId])}
+                  tasks={column.map((itemId) => ({
+                    onChange,
+                    ...kanbanData.tasks[itemId],
+                  }))}
                 />
               );
             })}
@@ -51,12 +97,3 @@ export const KanbanBoard: VFC<Props> = ({ initialData }) => {
     </DragDropContext>
   ) : null;
 };
-
-function mapToColumns(data: KanbanData["columns"]): ColumnsType {
-  return Object.keys(data).reduce((columns: ColumnsType, key) => {
-    const itemOrder = data[key].taskIds;
-
-    columns[key] = itemOrder;
-    return columns;
-  }, {});
-}

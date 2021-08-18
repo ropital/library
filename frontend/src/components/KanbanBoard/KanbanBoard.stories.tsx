@@ -1,6 +1,6 @@
 import { Meta } from "@storybook/react";
-import { initialData } from "./data";
-import { KanbanBoard } from "./KanbanBoard";
+import { KanbanBoard, KanbanBoardProps } from "./KanbanBoard";
+import { getKanbanBoard } from "./repository";
 
 export default {
   title: "KanbanBoard",
@@ -8,5 +8,5 @@ export default {
 } as Meta;
 
 export const Default = () => {
-  return <KanbanBoard initialData={initialData} />;
+  return <KanbanBoard {...getKanbanBoard("kanban-1")} />;
 };
