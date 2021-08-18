@@ -8,9 +8,16 @@ export type ColumnProps = {
   title: string;
   index: number;
   tasks: Omit<TaskProps, "index">[];
+  onChangeTitle: (id: string, title: string) => void;
 };
 
-export const Column: VFC<ColumnProps> = ({ title, id, index, tasks }) => {
+export const Column: VFC<ColumnProps> = ({
+  title,
+  id,
+  index,
+  tasks,
+  onChangeTitle,
+}) => {
   return (
     <Draggable draggableId={id} index={index}>
       {(provided) => (
@@ -20,7 +27,10 @@ export const Column: VFC<ColumnProps> = ({ title, id, index, tasks }) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
         >
-          <h2>{title}</h2>
+          <input
+            value={title}
+            onChange={(event) => onChangeTitle(id, event.target.value)}
+          />
 
           <Droppable droppableId={id}>
             {(provided) => (

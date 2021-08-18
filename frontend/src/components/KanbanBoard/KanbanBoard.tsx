@@ -7,25 +7,7 @@ import {
   TaskOrderMap,
   useMultipeColumn,
 } from "./useMultipleColumn";
-
-type Task = {
-  id: string;
-  content: string;
-};
-
-type ColumnType = {
-  id: string;
-  title: string;
-};
-
-type KanbanData = {
-  tasks: {
-    [key in string]: Task;
-  };
-  columns: {
-    [key in string]: ColumnType;
-  };
-};
+import { KanbanData, useKanbanBoard } from "./useKanbanBoard";
 
 export type KanbanBoardProps = {
   data: KanbanData;
@@ -38,7 +20,7 @@ export const KanbanBoard: VFC<KanbanBoardProps> = ({
   columnOrder,
   taskOrderMap,
 }) => {
-  const [kanbanData, setKanbanData] = useState(data);
+  const { kanbanData, onChangeContent, onChangeTitle } = useKanbanBoard(data);
   const { columns, order, onDragEnd } = useMultipeColumn({
     initialTaskOrderMap: taskOrderMap,
     initialColumnOrder: columnOrder,
@@ -52,19 +34,6 @@ export const KanbanBoard: VFC<KanbanBoardProps> = ({
   useEffect(() => {
     setReady(true);
   }, []);
-
-  const onChange = (id: string, content: string) => {
-    setKanbanData({
-      ...kanbanData,
-      tasks: {
-        ...kanbanData.tasks,
-        [id]: {
-          id: id,
-          content: content,
-        },
-      },
-    });
-  };
 
   return ready ? (
     <DragDropContext onDragEnd={onDragEnd}>
@@ -84,8 +53,9 @@ export const KanbanBoard: VFC<KanbanBoardProps> = ({
                   id={columnId}
                   title={kanbanData.columns[columnId].title}
                   index={index}
+                  onChangeTitle={onChangeTitle}
                   tasks={column.map((itemId) => ({
-                    onChange,
+                    onChange: onChangeContent,
                     ...kanbanData.tasks[itemId],
                   }))}
                 />
